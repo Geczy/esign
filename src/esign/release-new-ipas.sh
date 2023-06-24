@@ -17,6 +17,8 @@ else
   exit 1
 fi
 
+source src/esign/lib/app-info.sh
+
 # Get the current date in YYYY-MM-DD format
 current_date=$(date +%Y-%m-%d)
 
@@ -94,49 +96,6 @@ extract_dylibs() {
   )
 }
 
-get_app_info() {
-  local bundle_id=$1
-  local search_url
-  local response
-  local error_message
-  local exists
-  local icon_url
-  local primary_genre_name
-  local localized_description
-
-  # Make the search request
-  search_url="https://itunes.apple.com/lookup?bundleId=$bundle_id"
-  response=$(curl -s "$search_url")
-
-  # Check for errors in the response
-  error_message=$(echo "$response" | grep -o '"errorMessage":"[^"]*' | sed 's/"errorMessage":"//')
-  if [[ -n "$error_message" ]]; then
-    echo "Error: $error_message"
-    return 1
-  fi
-
-  # Check if results[0] exists
-  exists=$(echo "$response" | jq -r '.results[0]')
-  if [[ "$exists" == "null" ]]; then
-    echo "Error: No results found for the given bundleID: $bundle_id"
-    return 1
-  fi
-
-  # Extract the app information from the response
-  icon_url=$(echo "$response" | jq -r '.results[0].artworkUrl512')
-  primary_genre_name=$(echo "$response" | jq -r '.results[0].primaryGenreName')
-  localized_description=$(echo "$response" | jq -r '.results[0].description')
-
-  # Set the app_type based on the primary genre name
-  if [[ "$primary_genre_name" == "Games" ]]; then
-    app_type="2"
-  else
-    app_type="1"
-  fi
-
-  echo "$icon_url $app_type $primary_genre_name $localized_description"
-}
-
 create_app_json() {
   # Check if there are any IPA files in the current folder
   if ! compgen -G "ipas/*.ipa" >/dev/null; then
@@ -173,11 +132,7 @@ create_app_json() {
     version_date=$(date -r "$unzip_folder/Payload/"*.app/Info.plist -u "+%Y-%m-%d")
     full_date=$(date -r "$unzip_folder/Payload/"*.app/Info.plist -u "+%Y-%m-%d%H:%M:%S" | tr -d ':-')
     download_url="https://github.com/$GITHUB_REPO/releases/download/$current_date/$new_ipa_file"
-    developer_name=$(echo "$pljson" | jq -r .CFBundleDisplayName)
     size=$(stat -f%z "ipas/$new_ipa_file")
-    icon_url=""
-    app_type=""
-    localized_description=""
 
     # TODO: This doesn't work at all, i think variable is empty
     # Check if the download URL already exists in the apps.json file
@@ -188,11 +143,17 @@ create_app_json() {
     # fi
 
     # Call the get_app_info function to retrieve app information
-    app_info=$(get_app_info "$bundle_identifier")
-    if [ $? -eq 0 ]; then
-      # Extract the icon URL and app type from the app_info
-      read -r icon_url app_type primary_genre_name localized_description <<<"$app_info"
+    appInfoResponse=$(get_app_info "$bundle_identifier")
+    if [[ -z "$appInfoResponse" ]]; then
+      echo "❌ Failed to lookup $bundle_identifier."
+      exit 1
     fi
+
+    name=$(echo "$appInfoResponse" | jq -r '.app_name')
+    developer_name=$(echo "$appInfoResponse" | jq -r '.developer_name')
+    app_type=$(echo "$appInfoResponse" | jq -r '.type')
+    icon_url=$(echo "$appInfoResponse" | jq -r '.iconURL')
+    localized_description=$(echo "$appInfoResponse" | jq -r '.description')
 
     # Check if there is a folder named "igamegod" (case insensitive) recursively
     if find "$unzip_folder/Payload/"*.app -iname 'igamegod*' -type d | grep -q .; then
@@ -266,6 +227,8 @@ fi
 # Update the apps.json file with the new app objects at the beginning of the array
 jq --argjson newApps "$new_apps_array" '.apps = $newApps + .apps' "$apps_file" >"$apps_file.tmp" && mv "$apps_file.tmp" "$apps_file"
 echo "New IPAs added to the beginning of apps.json file."
+
+exit 1
 
 # cp "$apps_file" "index.html"
 
