@@ -20,7 +20,7 @@ The Releaser tool streamlines the release process by automating essential tasks.
 - Upload release assets directly to the GitHub repository.
 - Rename the IPA file to follow the format `name_version.ipa` for improved organization.
 - Append new IPAs to the beginning of the `apps.json` file.
-- Commit changes to the `apps.json` and `index.html` files and push them to your repository.
+- Commit changes to the `apps.json` file and push them to your repository.
 
 # Release Process 🚀
 
@@ -40,11 +40,8 @@ Before running the script, you need to update the `.env` file with your credenti
 4. Update the following fields with your credentials:
 
    ```plaintext
-   GITHUB_USERNAME="<Your GitHub Username>"
    GITHUB_TOKEN="<Your GitHub Access Token with release access>"
    GITHUB_REPO="<ORG_NAME/REPO_NAME>"
-   ITUNES_USER="<Your iTunes Username>"
-   ITUNES_PASS="<Your iTunes Password>"
    ```
 
    You can find the necessary credentials in your respective accounts (GitHub and iTunes).
@@ -58,7 +55,7 @@ After adding the IPAs and updating the `.env` file, execute the `release-new-ipa
 3. Run the following command:
 
    ```bash
-   bash ./release-new-ipas.sh
+   yarn start
    ```
 
 Enjoy a streamlined and efficient release process with eSign Tools! If you have any questions or need further assistance, please don't hesitate to reach out. Happy app management! 🎉
