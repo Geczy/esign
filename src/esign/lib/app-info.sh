@@ -8,9 +8,16 @@ get_app_info() {
   local response=$(curl -s "$search_url")
 
   # Check for errors in the response
-  local error_message=$(echo "$response" | grep -o '"errorMessage":"[^"]*' | sed 's/"errorMessage":"//')
+  error_message=$(echo "$response" | grep -o '"errorMessage":"[^"]*' | sed 's/"errorMessage":"//')
   if [[ -n "$error_message" ]]; then
-    echo "Error: $error_message"
+    echo "❌ $error_message"
+    return 1
+  fi
+
+  # Check if results[0] exists
+  exists=$(echo "$response" | jq -r '.results[0]')
+  if [[ "$exists" == "null" ]]; then
+    echo "❌ No results found for the given app id: $trackId"
     return 1
   fi
 
@@ -21,34 +28,17 @@ get_app_info() {
     return 1
   fi
 
-  # Extract the app information from the response
-  local app_name=$(echo "$response" | jq -r '.results[0].trackName')
-  local description=$(echo "$response" | jq -r '.results[0].description')
-  local developer_name=$(echo "$response" | jq -r '.results[0].artistName')
-  local icon=$(echo "$response" | jq -r '.results[0].artworkUrl512')
-  local icon_url=$(echo "$response" | jq -r '.results[0].artworkUrl512')
-  local primary_genre_name=$(echo "$response" | jq -r '.results[0].primaryGenreName')
+  # Initialize an empty JSON object
+  json_string={}
 
-  # Set the app_type based on the primary genre name
-  if [[ "$primary_genre_name" == "Games" ]]; then
-    app_type="2"
-  else
-    app_type="1"
-  fi
+  # Loop through the fields and assign their values to the JSON object
+  fields=("trackName" "artistName" "price" "fileSizeBytes" "trackId" "primaryGenreName" "description" "bundleId" "artworkUrl512" "releaseNotes" "currentVersionReleaseDate" "version" "trackName" "trackViewUrl")
 
-  # Create the JSON object
-  local updated_json=$(
-    cat <<EOF
-{
-  "name": "$app_name",
-  "description": "$description",
-  "developerName": "$developer_name",
-  "icon": "$icon",
-  "type": $app_type,
-  "iconURL": "$icon_url"
-}
-EOF
-  )
+  for field in "${fields[@]}"; do
+    value=$(echo "$response" | jq -r ".results[0].$field")
+    json_string=$(jq -n --argjson json "$json_string" --arg field "$field" --arg value "$value" '$json + {($field): $value}')
+  done
 
-  echo "$updated_json"
+  # Print the final JSON string
+  echo "$json_string"
 }

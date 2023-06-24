@@ -149,11 +149,17 @@ create_app_json() {
       exit 1
     fi
 
-    name=$(echo "$appInfoResponse" | jq -r '.app_name')
-    developer_name=$(echo "$appInfoResponse" | jq -r '.developer_name')
-    app_type=$(echo "$appInfoResponse" | jq -r '.type')
-    icon_url=$(echo "$appInfoResponse" | jq -r '.iconURL')
+    name=$(echo "$appInfoResponse" | jq -r '.trackName')
+    developer_name=$(echo "$appInfoResponse" | jq -r '.artistName')
+    icon_url=$(echo "$appInfoResponse" | jq -r '.artworkUrl512')
     localized_description=$(echo "$appInfoResponse" | jq -r '.description')
+    local primary_genre_name=$(echo "$appInfoResponse" | jq -r '.primaryGenreName')
+    # Set the app_type based on the primary genre name
+    if [[ "$primary_genre_name" == "Games" ]]; then
+      app_type="2"
+    else
+      app_type="1"
+    fi
 
     # Check if there is a folder named "igamegod" (case insensitive) recursively
     if find "$unzip_folder/Payload/"*.app -iname 'igamegod*' -type d | grep -q .; then
@@ -183,7 +189,7 @@ create_app_json() {
       --argjson type "$app_type" \
       --arg localizedDescription "$localized_description" \
       --argjson size "$size" \
-      '{name: $name, bundleIdentifier: $bundleIdentifier, bundleID: $bundleIdentifier, version: $version, type: $type, versionDate: $versionDate, fullDate: $fullDate, down: $downloadURL, downloadURL: $downloadURL, developerName: $developerName, localizedDescription: $localizedDescription, icon: $icon, iconURL: $icon, size: $size}')
+      '{name: $name, realBundleID: $bundleIdentifier, bundleIdentifier: $bundleIdentifier, bundleID: $bundleIdentifier, version: $version, type: $type, versionDate: $versionDate, fullDate: $fullDate, down: $downloadURL, downloadURL: $downloadURL, developerName: $developerName, localizedDescription: $localizedDescription, icon: $icon, iconURL: $icon, size: $size}')
 
     # Append the release body with the app information
     release_body+="<img src=\"$icon_url\" width=\"35\" height=\"35\">"
@@ -228,9 +234,9 @@ fi
 jq --argjson newApps "$new_apps_array" '.apps = $newApps + .apps' "$apps_file" >"$apps_file.tmp" && mv "$apps_file.tmp" "$apps_file"
 echo "New IPAs added to the beginning of apps.json file."
 
-exit 1
+bash src/esign/delete-duplicates.sh || exit 1
 
-# cp "$apps_file" "index.html"
+cp "$apps_file" "index.html"
 
 release_id=""
 # Check if the release tag already exists
@@ -285,6 +291,6 @@ done
 
 rm "$output_file" ipas/*.ipa
 git add "$apps_file" >/dev/null 2>&1
-# git add index.html >/dev/null 2>&1
+git add index.html >/dev/null 2>&1
 git commit -m "Update apps.json" >/dev/null 2>&1
 git push origin main >/dev/null 2>&1
