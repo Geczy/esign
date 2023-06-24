@@ -133,7 +133,7 @@ get_app_info() {
 
 create_app_json() {
   # Check if there are any IPA files in the current folder
-  if ! compgen -G "./ipas/*.ipa" >/dev/null; then
+  if ! compgen -G "ipas/*.ipa" >/dev/null; then
     echo "No IPA files found in the current folder. Exiting."
     exit 1
   fi
@@ -142,7 +142,7 @@ create_app_json() {
   json=""
 
   # Loop through each IPA file in the current folder
-  for ipa_file in ./ipas/*.ipa; do
+  for ipa_file in ipas/*.ipa; do
     echo "Processing: $ipa_file"
 
     # Unzip the IPA file
@@ -160,7 +160,7 @@ create_app_json() {
 
     # Rename the IPA file
     new_ipa_file="${name_with_dots}_${version}.ipa"
-    mv "$ipa_file" "./ipas/$new_ipa_file"
+    mv "$ipa_file" "ipas/$new_ipa_file"
     echo "Renamed IPA file to: $new_ipa_file"
 
     bundle_identifier=$(echo "$pljson" | jq -r .CFBundleIdentifier)
@@ -168,7 +168,7 @@ create_app_json() {
     full_date=$(date -r "$unzip_folder/Payload/"*.app/Info.plist -u "+%Y-%m-%d%H:%M:%S" | tr -d ':-')
     download_url="https://github.com/$GITHUB_REPO/releases/download/$current_date/$new_ipa_file"
     developer_name=$(echo "$pljson" | jq -r .CFBundleDisplayName)
-    size=$(stat -f%z "./ipas/$new_ipa_file")
+    size=$(stat -f%z "ipas/$new_ipa_file")
     icon_url=""
     app_type=""
     localized_description=""
@@ -300,7 +300,7 @@ fi
 
 # Iterate over .ipa files in the ipas folder
 shopt -s nullglob
-ipas=("./ipas"/*.ipa)
+ipas=("ipas"/*.ipa)
 for ipa_file in "${ipas[@]}"; do
   encoded_file_name=$(printf "%s" "$ipa_file" | awk -F/ '{print $NF}' | sed 's/ /%20/g')
   # Upload the .ipa file as an asset to the existing release
@@ -314,7 +314,7 @@ for ipa_file in "${ipas[@]}"; do
   echo "Uploaded $(basename "$ipa_file") as an asset to GitHub release"
 done
 
-rm "$output_file" ./ipas/*.ipa
+rm "$output_file" ipas/*.ipa
 git add "$apps_file" >/dev/null 2>&1
 # git add index.html >/dev/null 2>&1
 git commit -m "Update apps.json" >/dev/null 2>&1
