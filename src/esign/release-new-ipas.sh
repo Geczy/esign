@@ -3,6 +3,12 @@
 apps_file="apps.json"
 output_file="output.json"
 
+# Check if apps_file doesn't exist
+if [[ ! -f "$apps_file" ]]; then
+  echo "Error: $apps_file file not found."
+  exit 1
+fi
+
 # Load environment variables from .env file
 if [ -f ".env" ]; then
   source src/esign/lib/setenv.sh
