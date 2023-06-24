@@ -128,3 +128,5 @@ fi
 # Write the updated JSON to a new file
 output_file="src/esign/apps.json"
 echo "$updated_json" >"$output_file"
+
+bash src/esign/delete-duplicates.sh
