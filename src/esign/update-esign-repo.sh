@@ -38,7 +38,7 @@ release_body="## 📚 [AppTesters.org](https://apptesters.org) IPA Archive
 "
 
 # Check if environment variables are empty or not set
-if [[ -z $GITHUB_USERNAME || -z $GITHUB_TOKEN || -z $GITHUB_REPO ]]; then
+if [[ -z $GITHUB_TOKEN || -z $GITHUB_REPO ]]; then
   echo "Error: GitHub username, token, or repo is missing. Please check the .env file."
   exit 1
 fi
