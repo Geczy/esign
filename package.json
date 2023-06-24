@@ -5,7 +5,7 @@
   "description": "Welcome to eSign Tools, a collection of utilities for managing and enhancing your app releases. This repository includes two main components: Cleaner and Releaser. Follow the instructions below to utilize these tools effectively.",
   "main": "build/index.js",
   "scripts": {
-    "start": "bash ./src/esign/update-esign-repo.sh",
+    "start": "bash ./src/esign/release-new-ipas.sh",
     "convert": "bash ./src/esign/update-old-apps-json.sh",
     "format": "yarn prettier --write .",
     "test": "echo \"Error: no test specified\" && exit 1",

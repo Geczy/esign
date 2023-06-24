@@ -51,14 +51,14 @@ Before running the script, you need to update the `.env` file with your credenti
 
 ## Step 3: Run the Update eSign Repo Script
 
-After adding the IPAs and updating the `.env` file, execute the `update-esign-repo.sh` script to update the eSign JSON file with the required release information. Follow these steps to run the script:
+After adding the IPAs and updating the `.env` file, execute the `release-new-ipas.sh` script to update the eSign JSON file with the required release information. Follow these steps to run the script:
 
 1. Open a terminal or command prompt.
 2. Navigate to the root folder of this repository.
 3. Run the following command:
 
    ```bash
-   ./update-esign-repo.sh
+   bash ./release-new-ipas.sh
    ```
 
 Enjoy a streamlined and efficient release process with eSign Tools! If you have any questions or need further assistance, please don't hesitate to reach out. Happy app management! 🎉
